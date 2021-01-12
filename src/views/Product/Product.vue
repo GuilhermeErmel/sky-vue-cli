@@ -43,13 +43,13 @@
       />
     </div>
 
-    <button class="btn btn-primary float-right" @click="save">Salvar</button>
+    <button class="btn btn-primary float-right" @click="save" :class="{ loading }">Salvar</button>
   </div>
 </template>
 
 <script>
 import router from "@/router";
-import { mapActions, mapGetters } from "vuex";
+import { mapActions, mapState } from "vuex";
 
 export default {
   name: "product",
@@ -63,7 +63,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(["products"]),
+    ...mapState(["products", "loading"]),
 
     isNew: function () {
       return !this.$route.params.code;
@@ -79,6 +79,7 @@ export default {
         name: this.productName,
         value: this.productValue,
         amount: this.productAmount,
+        id: this.code,
       };
     },
   },
@@ -95,7 +96,7 @@ export default {
   },
 
   methods: {
-    ...mapActions(["addProduct", "editProduct"]),
+    ...mapActions(["storeProduct"]),
 
     init: function() {
       if (!this.isNew) {
@@ -113,11 +114,7 @@ export default {
 
     async save() {
       try {
-        if (this.isNew) {
-          await this.addProduct(this.product);
-        } else {
-          await this.editProduct(this.product);
-        }
+        await this.storeProduct(this.product);
 
         router.push("/");
       } catch (error) {

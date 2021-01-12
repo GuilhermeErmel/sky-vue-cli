@@ -23,19 +23,30 @@ const state = {
 
 const actions = {
     hasUnusedCode(product) {
-        return state.products.findIndex(item => item.code === product.code) === -1;
+        // caso esteja editando (mantendo cod. do produto)
+        const isEditing = product.code === product.id;
+
+        return state.products.findIndex((item) => {
+            return (item.code === product.code) && (! isEditing)
+        }) === -1;
     },
 
-    addProduct({ commit }, product) {
+    storeProduct({ commit }, product) {
         commit('setLoading', true);
 
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 if (! actions.hasUnusedCode(product)) {
-                    return reject("O Código do produto deve ser único.");
+                    return reject("Esse código está em uso por outro produto.");
                 }
 
-                commit('addProduct', product)
+                if (product.id) {
+                    commit('editProduct', product)
+
+                } else {
+                    commit('addProduct', product)
+                }
+                
                 resolve(product)
             }, 500)
         }).finally(() => commit('setLoading', false))
@@ -45,10 +56,6 @@ const actions = {
         commit('decrementProduct', product)
     },
 
-    editProduct({ commit }, product) {
-        commit('editProduct', product)
-    },
-
     removeProduct({ commit }, product) {
         commit('removeProduct', product)
     }
@@ -56,11 +63,6 @@ const actions = {
 
 
 const getters = {
-
-    products(state) {
-        return state.products;
-    }
-
     /*
     uncheckeds(state) {
         return state.todos.filter(todo => todo.checked === false)
@@ -89,9 +91,10 @@ const mutations = {
     },
 
     editProduct(state, payload) {
-        // TODO
-
-        // state.products = state.products.filter(item => item.code !== payload.code)
+        const index = state.products.findIndex(item => item.code === payload.id);
+        if (index > -1) {
+            Vue.set(state.products, index, payload );
+        }
     },
 
     removeProduct(state, payload) {
